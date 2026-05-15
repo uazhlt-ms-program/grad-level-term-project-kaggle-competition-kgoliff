@@ -1,0 +1,21 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+
+training = pd.read_csv("Users/kgoliff/Desktop/ling-539-competition-2026/train.csv")
+testing = pd.read_csv("Users/kgoliff/Desktop/ling-539-competition-2026/test.csv")
+training["TEXT"] = training["TEXT"].fillna("")
+testing["TEXT"] = testing["TEXT"].fillna("")
+text_train = training["TEXT"]
+label_train = training["LABEL"]
+
+model = Pipeline([
+    ("tfidf", TfidfVectorizer(stop_words=None, lowercase=True, max_features=200000, ngram_range=(1,5), min_df=2, max_df=0.95, sublinear_tf=True)),
+    ("clf", LogisticRegression(max_iter=5000, C=4, solver="liblinear", class_weight={0:2,1:1,2:1}))
+    ])
+
+model.fit(text_train, label_train)
+predictions = model.predict(testing["TEXT"])
+submission = pd.DataFrame({"ID": testing["ID"], "LABEL": predictions})
+submission.to_csv("Users/kgoliff/Desktop/ling-539-competition-2026/submission.csv", index=False)
